@@ -84,7 +84,7 @@ class HRDR_BPR(Recommender):
 
         if self.trainable:
             if not hasattr(self, "model"):
-                from .hrdr import Model
+                from .hrdr_bpr import Model
                 self.model = Model(
                     self.train_set.num_users,
                     self.train_set.num_items,
@@ -110,8 +110,8 @@ class HRDR_BPR(Recommender):
         import tensorflow as tf
         from tensorflow import keras
         from .hrdr import get_data
-        from ...eval_methods.base_method import rating_eval
-        from ...metrics import MSE
+        from ...eval_methods.base_method import ranking_eval
+        from ...metrics import AUC
         loss = keras.losses.MeanSquaredError()
         if not hasattr(self, 'optimizer_'):
             if self.optimizer == 'rmsprop':
@@ -147,12 +147,13 @@ class HRDR_BPR(Recommender):
             current_weights = self.model.get_weights(self.train_set, self.batch_size, max_num_review=self.max_num_review)
             if self.val_set is not None:
                 self.P, self.Q, self.W1, self.bu, self.bi, self.mu, self.A = current_weights
-                [val_loss], _ = rating_eval(
+                [current_val_auc], _ = ranking_eval(
                     model=self,
-                    metrics=[MSE()],
+                    metrics=[AUC()],
+                    train_set=self.train_set,
                     test_set=self.val_set,
-                    user_based=self.user_based
                 )
+                val_loss = current_val_auc
                 if best_val_loss > val_loss:
                     best_val_loss = val_loss
                     self.best_epoch = i_epoch + 1
