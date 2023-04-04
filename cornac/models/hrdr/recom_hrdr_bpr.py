@@ -23,7 +23,7 @@ from ...exception import ScoreException
 class HRDR_BPR(Recommender):
     def __init__(
         self,
-        name="HRDR",
+        name="HRDR_BPR",
         embedding_size=100,
         id_embedding_size=32,
         n_factors=32,
@@ -183,10 +183,13 @@ class HRDR_BPR(Recommender):
         model = self.model
         del self.model
 
+        optimizer_ = self.optimizer_
+        del self.optimizer_
         model_file = Recommender.save(self, save_dir)
 
+        self.optimizer_ = optimizer_
         self.model = model
-        self.model.save(model_file.replace(".pkl", ".cpt"))
+        self.model.graph.save(model_file.replace(".pkl", ".cpt"))
 
         return model_file
 
