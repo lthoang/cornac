@@ -21,33 +21,7 @@ from tensorflow.keras import layers, initializers, Input
 from ...utils import get_rng
 from ...utils.init_utils import uniform
 
-from .narre import get_data
-
-class TextProcessor(keras.Model):
-    def __init__(self, max_text_length, filters=64, kernel_sizes=[3], dropout_rate=0.5, name=''):
-        super(TextProcessor, self).__init__(name=name)
-        self.max_text_length = max_text_length
-        self.filters = filters
-        self.kernel_sizes = kernel_sizes
-        self.conv = []
-        self.maxpool = []
-        for kernel_size in kernel_sizes:
-            self.conv.append(layers.Conv2D(self.filters, kernel_size=(1, kernel_size), use_bias=True, activation="relu"))
-            self.maxpool.append(layers.MaxPooling2D(pool_size=(1, self.max_text_length - kernel_size + 1)))
-        self.reshape = layers.Reshape(target_shape=(-1, self.filters * len(kernel_sizes)))
-        self.dropout_rate = dropout_rate
-        self.dropout = layers.Dropout(rate=self.dropout_rate)
-
-    def call(self, inputs, training=False):
-        text = inputs
-        pooled_outputs = []
-        for conv, maxpool in zip(self.conv, self.maxpool):
-            text_conv = conv(text)
-            text_conv_maxpool = maxpool(text_conv)
-            pooled_outputs.append(text_conv_maxpool)
-        text_h = self.reshape(tf.concat(pooled_outputs, axis=-1))
-        text_h = self.dropout(text_h)
-        return text_h
+from .narre import get_data, TextProcessor, AddGlobalBias
 
 
 def get_item_review_pairs(train_set, batch_item_i_ids, batch_item_j_ids, max_text_length, max_num_review=None):
@@ -85,21 +59,6 @@ def get_item_review_pairs(train_set, batch_item_i_ids, batch_item_j_ids, max_tex
     batch_item_i_num_reviews = np.array(batch_item_i_num_reviews)
     batch_item_j_num_reviews = np.array(batch_item_j_num_reviews)
     return batch_item_i_reviews, batch_item_i_id_reviews, batch_item_i_num_reviews, batch_item_j_reviews, batch_item_j_id_reviews, batch_item_j_num_reviews
-
-
-class AddGlobalBias(keras.layers.Layer):
-
-    def __init__(self, init_value=0.0, name="global_bias"):
-        super(AddGlobalBias, self).__init__(name=name)
-        self.init_value = init_value
-      
-    def build(self, input_shape):
-        self.global_bias = self.add_weight(shape=1,
-                               initializer=tf.keras.initializers.Constant(self.init_value),
-                               trainable=True)
-
-    def call(self, inputs):
-        return inputs + self.global_bias
 
 class Model:
     def __init__(self, n_users, n_items, vocab, global_mean, n_factors=32, embedding_size=100, id_embedding_size=32, attention_size=16, kernel_sizes=[3], n_filters=64, dropout_rate=0.5, max_text_length=50, pretrained_word_embeddings=None, verbose=False, seed=None):
