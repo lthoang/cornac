@@ -13,11 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-import os
-import sys
-import glob
-from setuptools import Extension, setup, find_packages
-
 
 """
 Release instruction:
@@ -29,10 +24,12 @@ Release instruction:
 """
 
 
-try:
-    import numpy as np
-except ImportError:
-    exit("Please install numpy>=1.14 first.")
+import os
+import sys
+import glob
+from setuptools import Extension, setup, find_packages
+
+import numpy as np
 
 try:
     from Cython.Build import cythonize
@@ -149,7 +146,10 @@ extensions = [
     ),
     Extension(
         "cornac.models.hpf.hpf",
-        sources=["cornac/models/hpf/cython/hpf" + ext, "cornac/models/hpf/cpp/cpp_hpf.cpp",],
+        sources=[
+            "cornac/models/hpf/cython/hpf" + ext,
+            "cornac/models/hpf/cpp/cpp_hpf.cpp",
+        ],
         include_dirs=[
             "cornac/models/hpf/cpp/",
             "cornac/utils/external/eigen/Eigen",
@@ -288,7 +288,7 @@ if USE_CYTHON:
 
 setup(
     name="cornac",
-    version="1.14.2",
+    version="1.15.4",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -311,10 +311,10 @@ setup(
         "Intended Audience :: Education",
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
